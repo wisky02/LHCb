@@ -1,0 +1,6 @@
+root -l DaVinciTuples_S24r1_part_pipipi0.root
+.x TMVAClassification_pipipi0.C
+TFile *_file1 = TFile::Open("DaVinciTuples_S24r1_part_pipipi0.root")
+DecayTree->Draw("lab0_DTF_D0Mass_M >> h(100, 2005, 2030)", "BDT > 0")
+
+if TMVA has already been run import the TMVA.root file to retrieve the BDT data
