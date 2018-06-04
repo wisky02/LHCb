@@ -1,0 +1,19 @@
+root -l file_name_to_be_plotted
+using namespace RooFit ;
+DecayTree->Draw("lab0_DTF_D0Mass_M >> h(100,2005,2030)")
+TH1* hh = (TH1*) gDirectory->Get(“h”) 
+RooRealVar lab0_DTF_D0Mass_M("lab0_DTF_D0Mass_M","lab0_DTF_D0Mass_M",2005,2030) ;
+RooDataHist data(“data”,”dataset with lab0_DTF_D0Mass_M”,lab0_DTF_D0Mass_M,hh) ; 
+RooPlot* frame = lab0_DTF_D0Mass_M.frame()
+data.plotOn(frame)
+
+// setting up gaussian for fit
+  RooRealVar mean("mean","mean",0,2005,2030) ;
+  RooRealVar sigma("sigma","sigma",3,0.1,10) ;
+  RooGaussian gauss("gauss","gauss",x,mean,sigma) ;
+  gauss.fitTo(data) ;
+  gauss.plotOn(frame) ;
+
+//plotting
+
+frame->Draw()
