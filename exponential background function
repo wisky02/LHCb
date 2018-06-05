@@ -3,5 +3,5 @@ RooRealVar M_th(“M_th”,”M_th”,140,170) ;
 RooRealVar a("a",”a”,-10,10) ;
 RooRealVar b(“b”,”b”,-10,10) ;
 
-RooGenericPdf background(“background”,”Modified-Exponential Background plot”,””,RooArgSet(delta_M,M_th,a,b)) 
+RooGenericPdf background(“background”,”Modified-Exponential Background plot”,”(1-exp(-(delta_M/M_th)/a))*(delta_M/M_th)^b”,RooArgSet(delta_M,M_th,a,b)) 
 
