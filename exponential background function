@@ -1,0 +1,7 @@
+RooRealVar delta_M(“delta_M”,”delat_M”,140,170) ;
+RooRealVar M_th(“M_th”,”M_th”,140,170) ;
+RooRealVar a("a",”a”,-10,10) ;
+RooRealVar b(“b”,”b”,-10,10) ;
+
+RooGenericPdf background(“background”,”Modified-Exponential Background plot”,””,RooArgSet(delta_M,M_th,a,b)) 
+
