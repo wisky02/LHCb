@@ -6,10 +6,11 @@
 //Loop over these bins with the shape parameters to find the yield parameters that fit the data. The yeild parameters are plotted to the two mass variables but obviously only the ones that are in the histoframe decay range
 //Plot two histograms (D0 and D0bar) containing the yield values for each decay time and their uncertainties
 //Use this information to find the assymetry from: (D0-D0bar)/(D0+D0bar)
-
-#include "TH2F.h"
-#include "RooProdPdf.h"
+#include <iostream>
 #include <vector>
+#include "RooDataSet.h" 
+#include "RooRealVar.h"
+#include "RooAbsArg.h"
 void Time_dependence_Kpipi0(){
 
   using namespace RooFit;
@@ -168,7 +169,7 @@ void Time_dependence_Kpipi0(){
   // D0_decay_frame->Draw();
 
 
-  //                    Splitting histogram bins                            //
+  //                    GETTING COMBINED DATA                            //
 
 
   // Getting combined data for D0
@@ -192,7 +193,7 @@ void Time_dependence_Kpipi0(){
   RooRealVar* D0_M_D0BAR = (RooRealVar*)&(*variables_D0BAR)["D0_M"];
 
 
-
+ //                    REDUCING DATASETS AND CREATING VECTORS POINTING TO THESE FOR D0 AND D0BAR                            //
   //Declaring data subsets D0
   RooDataSet* d1 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>= 0 && ctau < 0.5");
   RooDataSet* d2 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=0.5 && ctau<1.");
@@ -218,14 +219,14 @@ void Time_dependence_Kpipi0(){
   dataset_d0_vect.push_back(d9);
   dataset_d0_vect.push_back(d10);
  
- // int y;  //for checking that the vector was created properly
- //  cout << "d0 dataset contains:";
- //  for (y=0; y<dataset_d0_vect.size(); y++)
- //    cout << " " << dataset_d0_vect.at(y);
+  // int y;  //for checking that the vector was created properly
+  //  cout << "d0 dataset contains:";
+  //  for (y=0; y<dataset_d0_vect.size(); y++)
+  //    cout << " " << dataset_d0_vect.at(y);
 
- //  cout << endl;
+  //  cout << endl;
 
- //Declaring data subsets D0_bar
+  //Declaring data subsets D0_bar
   RooDataSet* dbar1 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=0 && ctau_bar<0.5");
   RooDataSet* dbar2 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=0.5 && ctau_bar<1.");
   RooDataSet* dbar3 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=1. && ctau_bar<1.5");
@@ -249,38 +250,37 @@ void Time_dependence_Kpipi0(){
   dataset_d0bar_vect.push_back(dbar8);
   dataset_d0bar_vect.push_back(dbar9);
   dataset_d0bar_vect.push_back(dbar10);
-  
-// int q;   //for checking that the vector was created properly
-//   cout << "d0 bar contains:";
-//   for (q=0; q<dataset_d0bar_vect.size(); q++)
-//     cout << " " << dataset_d0bar_vect.at(q);
+ 
+  //for checking that the vector was created properly
+  // int z;  
+  //   cout << "d0 bar contains:";
+  //   for (z=0; z<dataset_d0bar_vect.size(); z++)
+  //     cout << " " << dataset_d0bar_vect.at(z);
 
-//   cout << endl;
-
-
-
-  //                         Yield values for decay time                     //
-  // Fitting fixed shape paramater plot to reduced data and finding yeild values
-  //Retrieving and setting shape parameters constant
+  //   cout << endl;
 
 
-  //looping over paramaters setting them constant other than the yeild values for D0
+
+
+  //                    SETTING SHAPE PARAMETERS CONSTANT                          //
+  //looping over paramaters setting them constant other than the yeild values for D0 and D0bar
   RooArgSet* vars = totalpdf.getParameters(*data_mass);
   RooFIter iter=vars->fwdIterator() ;
-  vars->Print("V");
+  // vars->Print("v");
   RooAbsArg* arg;
   RooRealVar *rrvar;
   vector<RooRealVar*> d0_vect;
   int i =0;
   while((arg=iter.next())) {
     rrvar = dynamic_cast<RooRealVar*>(arg);
+    // arg->Print("v");
     if(rrvar){
       switch(i) {
-      case 11:{    //nsignal
+      case 11:{    //n_com_bkg
 	break;}
-      case 12:{    //n_com_bkg 
+      case 12:{    //n_ranpi_bkg 
 	break;}
-      case 13: {  //n_ranpi_bkg
+      case 13: {  //nsignal
 	break;}
       default: {
 	rrvar->setConstant(); 
@@ -288,33 +288,111 @@ void Time_dependence_Kpipi0(){
       }
     }
     else { cout << "issue with rrvar"; }
-    // d0_vect.push_back(rrvar);
     i++;
     
-}
+  }
 
   //printing contents of d0_vect (pointers)
-  int f;
-  cout << "myvector contains:";
-  for (f=0; f<d0_vect.size(); f++)
-    cout << " " << d0_vect.at(f);
+  // int f;
+  // int d0_size = dataset_d0_vect.size();
+  // cout << "myvector contains:";
+  // for (f=0; f<=d0_size; f++)
+  //   cout << " " << d0_vect.at(f);
 
-  cout << endl;
+  // cout << endl;
 
-  //D0 decay time itteration over subdatasets from vector
-   int k;
-   for (k=1; k<=10; k++) {
-     totalpdf.fitTo(*dataset_d0_vect[k]);
-   }
+  //                    FITTING NEW TIME-DEPENDANT SIGNAL VALUES AND PUTTING INTO VECTOR                            //
+  // D0 decay time itteration over subdatasets from vector
+  int k;
+  int data_d0_size=dataset_d0_vect.size(); 
+  RooRealVar *nsignal_vals_D0 ;
+  vector<double> nsignal_D0_vect_double;
+  vector<double> nsignal_D0_error_vect_double;
+  RooAbsArg* coefficient;
+  double nsignal_D0_double;
+  double nsignal_D0_error_double;
+  for (k=0; k<data_d0_size; k++) {
+    totalpdf.fitTo(*dataset_d0_vect[k]);
+    coefficient = totalpdf.coefList().at(0);  //nsignal(0), n_com_bkg(1), n_randpi_bkg(2) after removing shape parameters
+    nsignal_vals_D0 =dynamic_cast<RooRealVar*>(coefficient);
+    nsignal_D0_double = nsignal_vals_D0->getVal();
+    nsignal_D0_error_double =  nsignal_vals_D0->getError();
 
-
-
+    if(nsignal_vals_D0){
+      nsignal_D0_vect_double.push_back(nsignal_D0_double);
+      nsignal_D0_error_vect_double.push_back(nsignal_D0_error_double);
+    }
+    else { cout << "ISSUE WITH CREATING SIGNAL VECTOR- NSIGNAL_D0_VECT"; }
+  }
 
   //D0_bar decay time itteration over subdatasets from vector
   int p; 
-dataset_d0bar_vect;
-   for (p=1; p<=10; p++) {
-     totalpdf.fitTo(*dataset_d0bar_vect[p]);
-   }
+  int data_D0bar_size = dataset_d0bar_vect.size();
+  RooRealVar *nsignal_vals_D0bar ;
+  vector<double> nsignal_D0bar_vect_double;
+  vector<double> nsignal_D0bar_error_vect_double;
+  double nsignal_D0bar_double;
+  double nsignal_D0bar_error_double;
+  for (p=0; p<data_D0bar_size; p++) {
+    totalpdf.fitTo(*dataset_d0bar_vect[p]);
+    coefficient = totalpdf.coefList().at(0);  //nsignal(0), n_com_bkg(1), n_randpi_bkg(2) after removing shape parameters
+    nsignal_vals_D0bar =dynamic_cast<RooRealVar*>(coefficient);
+    nsignal_D0bar_double = nsignal_vals_D0bar->getVal();
+    nsignal_D0bar_error_double =  nsignal_vals_D0bar->getError();
+
+    if(nsignal_vals_D0bar){
+      nsignal_D0bar_vect_double.push_back(nsignal_D0bar_double);
+      nsignal_D0bar_error_vect_double.push_back(nsignal_D0bar_error_double);
+    }
+    else { cout << "ISSUE WITH CREATING SIGNAL VECTOR- NSIGNAL_D0_VECT"; }
+  }
+
+  // CHECKING IF SIGNAL VECTOR IS PRODUCED CORRECTLY 
+  int o;
+  cout << "myvector contains:";
+  for (o=0; o<10; o++)
+    cout << " " <<nsignal_D0bar_error_vect_double.at(o);
+
+  cout << endl;
+
+
+  //                 PLOTTING DATA ON HIST              //
+ 
+  //  D0  and D0bar  //
+  const Int_t NBINS = 10;
+  Double_t edges[NBINS + 1] = {0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0};
+
+  TH1D* D0_sig_hist = new TH1D("D0_sig_hist","Hist with variable bin width", NBINS, edges); 
+
+  TH1D* D0bar_sig_hist = new TH1D("D0bar_sig_hist","Hist with variable bin width", NBINS, edges);
+  int q;
+  for (q=0; q<NBINS; q++) {
+    // D0 //
+    nsignal_D0_double = nsignal_D0_vect_double[q];
+    //nsignal_D0_error_vect_double = nsignal_D0_error_vect_double[q];
+    D0_sig_hist->SetBinContent(q+1,nsignal_D0_double);
+    // D0_sig_hist->SetError(q+1,nsignal_D0_error_vect_double);
+
+    // D0 BAR //
+    nsignal_D0bar_double = nsignal_D0bar_vect_double[q];
+    //nsignal_D0_error_vect_double = nsignal_D0_error_vect_double[q];
+    D0bar_sig_hist->SetBinContent(q+1,nsignal_D0bar_double);
+    //D0bar_sig_hist->SetBinError(q+1 )			     
+  }  
+  auto c6 =  new TCanvas();
+  D0_sig_hist->Draw();
+
+  auto c7 = new TCanvas();
+  D0bar_sig_hist->Draw();
+
+  // FOR SEEING THE REDUCED DATA PLOTS 
+  // RooPlot* example_frame = ctau_D0->frame();
+  // d1->plotOn(example_frame);
+  // totalpdf.fitTo(*d1);
+  // totalpdf.plotOn(example_frame);
+  // example_frame->Draw();
+
+
+
 
 }
