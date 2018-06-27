@@ -11,6 +11,7 @@
 #include "RooDataSet.h" 
 #include "RooRealVar.h"
 #include "RooAbsArg.h"
+#include "math.h"
 void Time_dependence_Kpipi0(){
 
   using namespace RooFit;
@@ -129,7 +130,7 @@ void Time_dependence_Kpipi0(){
 
 
   //Fitting and printing plots
-  // totalpdf.fitTo(*data_mass);
+  totalpdf.fitTo(*data_mass);
 
  
   // auto c = new TCanvas();
@@ -366,16 +367,18 @@ void Time_dependence_Kpipi0(){
 
   TH1D* D0bar_sig_hist = new TH1D("D0bar_sig_hist","Hist with variable bin width", NBINS, edges);
   int q;
+  D0_sig_hist->Sumw2();
+  D0bar_sig_hist->Sumw2();
   for (q=0; q<NBINS; q++) {
     // D0 //
     nsignal_D0_double = nsignal_D0_vect_double[q];
-    //nsignal_D0_error_vect_double = nsignal_D0_error_vect_double[q];
+    //   nsignal_D0_error_vect_double = nsignal_D0_error_vect_double[q];
     D0_sig_hist->SetBinContent(q+1,nsignal_D0_double);
-    // D0_sig_hist->SetError(q+1,nsignal_D0_error_vect_double);
+    //  D0_sig_hist->SetError(nsignal_D0_error_vect_double);
 
     // D0 BAR //
     nsignal_D0bar_double = nsignal_D0bar_vect_double[q];
-    //nsignal_D0_error_vect_double = nsignal_D0_error_vect_double[q];
+    //nsignal_D0bar_error_vect_double = nsignal_D0bar_error_vect_double[q];
     D0bar_sig_hist->SetBinContent(q+1,nsignal_D0bar_double);
     //D0bar_sig_hist->SetBinError(q+1 )			     
   }  
@@ -384,6 +387,57 @@ void Time_dependence_Kpipi0(){
 
   auto c7 = new TCanvas();
   D0bar_sig_hist->Draw();
+
+  TH1D *h3 = (TH1D*)D0_sig_hist->Clone("h3");
+  TH1D *h4 = (TH1D*)D0_sig_hist->Clone("h4");
+  h3->Add(D0bar_sig_hist,-1);
+  h4->Add(D0bar_sig_hist);
+  h3->Divide(h4);
+
+  //     CALCULATING ERRORS     //
+  //err = sqrt( errD0^2*(dD0(f))^2 + errD0bar^2*(dD0bar(f))^2 )
+
+  int u;  
+  double dD0_denom;
+  double dD0_numer;
+  double dD0_differential;
+  double dD0_term1;
+  double dD0bar_denom;
+  double dD0bar_numer;
+  double dD0bar_differential;
+  double dD0bar_term2;
+  double error_square_sum;
+  vector<double> error_vect;
+  for (u=0; u<data_d0_size; u++) {
+    // D0 partial differntial squared  
+    dD0_numer = 4*pow(nsignal_D0bar_vect_double[u],2);
+    dD0_denom = pow(nsignal_D0_vect_double[u]+ nsignal_D0bar_vect_double[u],4);
+    dD0_differential = dD0_numer/dD0_denom;
+    dD0_term1 = dD0_differential*pow(nsignal_D0_error_vect_double[u],2);
+
+    //D0bar partial differential squared
+    dD0bar_numer = 4*pow(nsignal_D0_vect_double[u],2);
+    dD0bar_denom = pow(nsignal_D0_vect_double[u]+ nsignal_D0bar_vect_double[u],4);
+    dD0bar_differential = dD0bar_numer/dD0bar_denom;
+    dD0bar_term2 =  dD0bar_differential*pow(nsignal_D0bar_error_vect_double[u],2);
+
+    // Total error
+    error_square_sum = sqrt(dD0_term1+dD0bar_term2);
+    error_vect.push_back(error_square_sum);
+    //  h3->SetBinError(u , error_square_sum);
+ }
+
+ int r;
+  cout << "myvector contains:";
+  for (r=0; r<10; r++)
+    cout << " " <<error_vect.at(r);
+
+  cout << endl;
+
+
+  auto c8 = new TCanvas();
+  h3->Draw();
+
 
   // FOR SEEING THE REDUCED DATA PLOTS 
   // RooPlot* example_frame = ctau_D0->frame();
