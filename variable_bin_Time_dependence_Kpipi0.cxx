@@ -20,6 +20,16 @@ void variable_bin_Time_dependence_Kpipi0(){
   gStyle->SetOptTitle(0);
   using namespace std;
 
+
+
+  // //for checking that the vector was created properly
+  // cout << "decaytimes contains:";
+  // for (int u=0; u<decaytimes.size(); u++)
+  //   cout << " " << decaytimes.at(u);
+  // cout << endl;  
+
+
+
   //                        Data Input                          //
 
 
@@ -84,6 +94,7 @@ void variable_bin_Time_dependence_Kpipi0(){
   RooRealVar cD0_1("cD0_1", "", 0.5, 0, 1) ;
   RooAddPdf D0_sig("D0_sig","", RooArgList(gauss_D0M,gauss_D0M2), cD0_1);
 
+
   //                    BACKGROUND: SHAPE PARAMETER                  // 
 
 
@@ -115,6 +126,7 @@ void variable_bin_Time_dependence_Kpipi0(){
 
   //Here the bkg_del pdf is used for both the random pi and combinatorial background
 
+
   //                   FINAL  PDF: SHAPE PARAMETER               //
 
 
@@ -131,7 +143,6 @@ void variable_bin_Time_dependence_Kpipi0(){
 
   //Fitting and printing plots
   totalpdf.fitTo(*data_mass);
-
  
   // auto c = new TCanvas();
   // RooPlot* D0_frame = D0_M->frame();
@@ -158,7 +169,6 @@ void variable_bin_Time_dependence_Kpipi0(){
   // totalpdf.plotOn(del_frame, Components("ranpi_bkgpdf"), LineColor(kRed), LineStyle(kDashed)) ;
   // del_frame->Draw();
 
-
   // auto c3 = new TCanvas();
   // RooPlot* D0_BAR_decay_frame = D0_BAR_decay->frame();
   // data_BAR->plotOn(D0_BAR_decay_frame);
@@ -170,7 +180,7 @@ void variable_bin_Time_dependence_Kpipi0(){
   // D0_decay_frame->Draw();
 
 
-  //                    GETTING COMBINED DATA                            //
+  //                    GETTING COMBINED DATA  + CREATING VARIABLE BINS                        //
 
 
   // Getting combined data for D0
@@ -197,7 +207,6 @@ void variable_bin_Time_dependence_Kpipi0(){
 
 
   // Combining D0 and D0bar and sorting bins
-
   int entries_D0 =  data_D0_comb->numEntries() ;
   int entries_D0bar =  data_D0BAR_comb->numEntries();
   vector<float> decaytimes_D0 ;
@@ -224,16 +233,6 @@ void variable_bin_Time_dependence_Kpipi0(){
   decaytimes.insert( decaytimes.end(), decaytimes_D0bar.begin(), decaytimes_D0bar.end() );
   sort(decaytimes.begin(), decaytimes.end()) ;
   
-  // //for checking that the vector was created properly
-  // cout << "decaytimes contains:";
-  // for (int u=0; u<decaytimes.size(); u++)
-  //   cout << " " << decaytimes.at(u);
-
-  // cout << endl;  
- 
-
-
-
   int total_entries = decaytimes.size(); 
   int number_bins = 10 ;
   int number_per_bin = total_entries/number_bins ;
@@ -252,28 +251,7 @@ void variable_bin_Time_dependence_Kpipi0(){
     else{ continue; }
   }
 
-  // checking that the vector was created properly
-  cout << "d0 dataset contains:";
-  for (int y=0; y<bin_edges.size(); y++)
-    cout << " " << bin_edges.at(y);
-  cout << endl;  
-
-
-  //      COMBINGIN SORTING VECTORS AND CREATING VARIABLE BINS       //
-
-  // vector<double> full_vect;
-  //  ctau_vect_D0.insert(ctau_vect_D0.end(),  ctaubar_vect_D0.begin(), ctaubar_vect_D0.end() ); 
-  // sort(ctau_vect_D0.begin(),ctau_vect_D0.end()); 
-
-  //                    REDUCING DATASETS AND CREATING VECTORS POINTING TO THESE FOR D0 AND D0BAR                            //
-  //Decalring D0 reduced datasets 
-  //  vector<RooDataSet*> D0_reduced_data_vect;
-  //  string name_num;
-  //  for(c=0; bin_edges.size()-1 ;c++){    //might need to be minus 2 due to underflow bin
-  //  name_num = to_string(c);
-  // RooDataSet* name_num  = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=" + "bin_edges[c]" +" && ctau <" +   "bin_edges[+1]");
-
-  // }
+  //                 COMBINING/SORTING VECTORS AND CREATING VARIABLE BINS                 //
 
   //Creating strings for D0 reduced dataset cuts
   vector<string> bin_string_vect;
@@ -297,7 +275,7 @@ void variable_bin_Time_dependence_Kpipi0(){
 
   //D0bar
   vector<string>bin_string_vect_bar;
- for(unsigned int m = 0; m<bin_edges.size() -1; m++){
+  for(unsigned int m = 0; m<bin_edges.size() -1; m++){
     bin_str1 =  "ctau_bar>= ";
     bin_str2 =  bin_edges[m] ; 
     bin_str3 = " && " ;
@@ -305,75 +283,38 @@ void variable_bin_Time_dependence_Kpipi0(){
     bin_str5 =bin_edges[m+1] ;
     total_bin_str = bin_str1 + bin_str2 + bin_str3 + bin_str4 + bin_str5;
     bin_string_vect_bar.push_back(total_bin_str) ;
- }
+  }
 
-
- // for checking that the vector was created properly
- cout << "string vect contains";
- for (int y=0; y<bin_string_vect.size(); y++)
-   cout << " " << bin_string_vect.at(y);
- // cout << " " << bin_string_vect_bar.at(y);
- cout << endl;
-
- //D0 reduce data sets
- vector<RooDataSet*> dataset_d0_vect;
- const char* bin_char;  
+  //D0 reduce data sets
+  vector<RooDataSet*> dataset_d0_vect;
+  const char* bin_char;  
  
- for(int kl = 0; kl<number_bins ; kl++){
-   bin_char = bin_string_vect[kl].c_str();
-   RooDataSet* d1 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),bin_char);
-   dataset_d0_vect.push_back(d1);
- }
+  for(int kl = 0; kl<number_bins ; kl++){
+    bin_char = bin_string_vect[kl].c_str();
+    RooDataSet* d1 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),bin_char);
+    dataset_d0_vect.push_back(d1);
+  }
 
- //D0bar reduced datasets
- vector<RooDataSet*> dataset_d0bar_vect;
- for(int ky = 0; ky<number_bins  ; ky++){
-   bin_char = bin_string_vect_bar[ky].c_str();
-   RooDataSet* d1 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),bin_char);
-   dataset_d0bar_vect.push_back(d1);
- }
-
-
-
- //Declaring data subsets D0
-  // RooDataSet* d1 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),bin_string_vect[1].c_str());
-  // RooDataSet* d2 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=0.5 && ctau<1.");
-  // RooDataSet* d3 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=1. && ctau <1.5");
-  // RooDataSet* d4 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=1.5 && ctau <2.");
-  // RooDataSet* d5 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=2. && ctau <2.5");
-  // RooDataSet* d6 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=2.5 && ctau<3.");
-  // RooDataSet* d7 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=3. && ctau<3.5");
-  // RooDataSet* d8 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=3.5 && ctau <4.");
-  // RooDataSet* d9 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=4. && ctau <4.5");
-  // RooDataSet* d10 = (RooDataSet*) data_D0_comb->reduce(RooArgSet(*deltam_D0, *D0_M_D0, *ctau_D0),"ctau>=4.5 && ctau <5.");
-
-
-  //Declaring data subsets D0_bar
-  // RooDataSet* dbar1 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=0 && ctau_bar<0.5");
-  // RooDataSet* dbar2 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=0.5 && ctau_bar<1.");
-  // RooDataSet* dbar3 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=1. && ctau_bar<1.5");
-  // RooDataSet* dbar4 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=1.5 && ctau_bar<2.");
-  // RooDataSet* dbar5 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=2. && ctau_bar<2.5");
-  // RooDataSet* dbar6 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=2.5 && ctau_bar<3.");
-  // RooDataSet* dbar7 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=3. && ctau_bar<3.5");
-  // RooDataSet* dbar8 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=3.5 && ctau_bar<4.");
-  // RooDataSet* dbar9 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=4. && ctau_bar<4.5");
-  // RooDataSet* dbar10 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),"ctau_bar>=4.5 && ctau_bar<5.");
-
-
+  //D0bar reduced datasets
+  vector<RooDataSet*> dataset_d0bar_vect;
+  for(int ky = 0; ky<number_bins  ; ky++){
+    bin_char = bin_string_vect_bar[ky].c_str();
+    RooDataSet* d1 = (RooDataSet*) data_D0BAR_comb->reduce(RooArgSet(*deltam_D0BAR, *D0_M_D0BAR, *ctau_D0BAR),bin_char);
+    dataset_d0bar_vect.push_back(d1);
+  }
 
   //                    SETTING SHAPE PARAMETERS CONSTANT                          //
+
+
   //looping over paramaters setting them constant other than the yeild values for D0 and D0bar
   RooArgSet* vars = totalpdf.getParameters(*data_mass);
   RooFIter iter=vars->fwdIterator() ;
-  // vars->Print("v");
   RooAbsArg* arg;
   RooRealVar *rrvar;
   vector<RooRealVar*> d0_vect;
   int i =0;
   while((arg=iter.next())) {
     rrvar = dynamic_cast<RooRealVar*>(arg);
-    // arg->Print("v");
     if(rrvar){
       switch(i) {
       case 11:{    //n_com_bkg
@@ -392,16 +333,10 @@ void variable_bin_Time_dependence_Kpipi0(){
     
   }
 
-  //printing contents of d0_vect (pointers)
-  // int f;
-  // int d0_size = dataset_d0_vect.size();
-  // cout << "myvector contains:";
-  // for (f=0; f<=d0_size; f++)
-  //   cout << " " << d0_vect.at(f);
-
-  // cout << endl;
 
   //                    FITTING NEW TIME-DEPENDANT SIGNAL VALUES AND PUTTING INTO VECTOR                            //
+
+
   // D0 decay time itteration over subdatasets from vector
   int k;
   int data_d0_size=dataset_d0_vect.size(); 
@@ -447,17 +382,10 @@ void variable_bin_Time_dependence_Kpipi0(){
     else { cout << "ISSUE WITH CREATING SIGNAL VECTOR- NSIGNAL_D0_VECT"; }
   }
 
-  // CHECKING IF SIGNAL VECTOR IS PRODUCED CORRECTLY 
-  // int o;
-  // cout << "myvector contains:";
-  // for (o=0; o<10; o++)
-  //   cout << " " <<nsignal_D0bar_error_vect_double.at(o);
-
-  // cout << endl;
-
 
   //                 PLOTTING DATA ON HIST              //
  
+
   //  D0  and D0bar  //
   const Int_t NBINS = 10;
   Double_t edges[NBINS + 1] = {0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0};
@@ -468,19 +396,17 @@ void variable_bin_Time_dependence_Kpipi0(){
   int q;
   D0_sig_hist->Sumw2();
   D0bar_sig_hist->Sumw2();
+
   for (q=0; q<NBINS; q++) {
     // D0 //
     nsignal_D0_double = nsignal_D0_vect_double[q];
-    //   nsignal_D0_error_vect_double = nsignal_D0_error_vect_double[q];
     D0_sig_hist->SetBinContent(q+1,nsignal_D0_double);
-    //  D0_sig_hist->SetError(nsignal_D0_error_vect_double);
 
     // D0 BAR //
     nsignal_D0bar_double = nsignal_D0bar_vect_double[q];
-    //nsignal_D0bar_error_vect_double = nsignal_D0bar_error_vect_double[q];
-    D0bar_sig_hist->SetBinContent(q+1,nsignal_D0bar_double);
-    //D0bar_sig_hist->SetBinError(q+1 )			     
+    D0bar_sig_hist->SetBinContent(q+1,nsignal_D0bar_double);		     
   }  
+
   auto c6 =  new TCanvas();
   D0_sig_hist->Draw();
 
@@ -493,8 +419,11 @@ void variable_bin_Time_dependence_Kpipi0(){
   h4->Add(D0bar_sig_hist);
   h3->Divide(h4);
 
+
   //     CALCULATING ERRORS     //
-  //err = sqrt( errD0^2*(dD0(f))^2 + errD0bar^2*(dD0bar(f))^2 )
+  
+
+//err = sqrt( errD0^2*(dD0(f))^2 + errD0bar^2*(dD0bar(f))^2 )
 
   int u;  
   double dD0_denom;
@@ -524,15 +453,7 @@ void variable_bin_Time_dependence_Kpipi0(){
     error_square_sum = sqrt(dD0_term1+dD0bar_term2);
     error_vect.push_back(error_square_sum);
     h3->SetBinError(u , error_square_sum);
- }
-
- // int r;
- //  cout << "myvector contains:";
- //  for (r=0; r<10; r++)
- //    cout << " " <<error_vect.at(r);
-
- //  cout << endl;
-
+  }
 
   auto c8 = new TCanvas();
   h3->Draw();
